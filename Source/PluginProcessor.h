@@ -10,10 +10,13 @@
 
 #include <JuceHeader.h>
 
+enum RatioChoice { Two, Four, Eight, Twenty };
+
 //==============================================================================
 /**
 */
-class CompressorAudioProcessor  : public juce::AudioProcessor
+class CompressorAudioProcessor  : public juce::AudioProcessor,
+                                  public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     //==============================================================================
@@ -60,19 +63,28 @@ public:
     juce::String paramThreshold { "THRESHOLD" };
     juce::String paramAttack { "ATTACK" };
     juce::String paramRelease { "RELEASE" };
-    juce::String paramBypass { "BYPASS" };
     juce::String paramOutput { "OUTPUT" };
+    juce::String paramBypass { "BYPASS" };
 
 private:
-    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    void parameterChanged(const juce::String& parameterId, float newValue);
-    
     juce::dsp::Gain<float> inputGain, outputGain;
-    
-    float threshold = 0.0f, attack = 400.0f, release = 250.0f;
-    bool isBypassed = false;
-    
     juce::dsp::BallisticsFilter<float> envelopeFilter;
+    
+    double sampleRate = 44100.0;
+    float threshold, thresholdInverse, ratioInverse;
+    int ratio = 1.0f;
+    float thresholddB = 0.0f, attackTime = 400.0f, releaseTime = 250.0f;
+    bool isBypassed = false;
+
+    //==============================================================================
+    float processSample(int channel, float inputValue);
+    
+    //==============================================================================
+    void update();
+    
+    //==============================================================================
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    void parameterChanged(const juce::String& parameterId, float newValue) override;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CompressorAudioProcessor)

@@ -22,11 +22,24 @@ CompressorAudioProcessor::CompressorAudioProcessor()
                        ), treeState(*this, nullptr, "PARAMS", createParameterLayout())
 #endif
 {
-    
+    treeState.addParameterListener(paramInput, this);
+    treeState.addParameterListener(paramRatio, this);
+    treeState.addParameterListener(paramThreshold, this);
+    treeState.addParameterListener(paramAttack, this);
+    treeState.addParameterListener(paramRelease, this);
+    treeState.addParameterListener(paramOutput, this);
+    treeState.addParameterListener(paramBypass, this);
 }
 
 CompressorAudioProcessor::~CompressorAudioProcessor()
 {
+    treeState.removeParameterListener(paramInput, this);
+    treeState.removeParameterListener(paramRatio, this);
+    treeState.removeParameterListener(paramThreshold, this);
+    treeState.removeParameterListener(paramAttack, this);
+    treeState.removeParameterListener(paramRelease, this);
+    treeState.removeParameterListener(paramOutput, this);
+    treeState.removeParameterListener(paramBypass, this);
 }
 
 //==============================================================================
@@ -94,8 +107,14 @@ void CompressorAudioProcessor::changeProgramName (int index, const juce::String&
 //==============================================================================
 void CompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.numChannels = getTotalNumOutputChannels();
+    spec.maximumBlockSize = samplesPerBlock;
+    
+    inputGain.prepare(spec);
+    outputGain.prepare(spec);
+    update();
 }
 
 void CompressorAudioProcessor::releaseResources()
@@ -138,55 +157,107 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    
+    juce::dsp::AudioBlock<float> block { buffer };
+    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
+        
+        // get parameter values here? do i use the tree values?
+        // if so, then is that still on a timer, or is it better that we call it inside processBlock
+        // and so the updated values will be accurate in time?
 
-        // ..do something to the data...
+        for (int sample = 0; sample < block.getNumSamples(); ++sample){
+            processSample(channel, channelData[sample]);
+        }
     }
+}
+
+float CompressorAudioProcessor::processSample(int channel, float inputValue){
+    // Ballistics filter with peak rectifier
+    auto env = envelopeFilter.processSample (channel, inputValue);
+
+    // VCA
+    auto gain = (env < threshold) ? static_cast<float> (1.0)
+                                  : std::pow (env * thresholdInverse, ratioInverse - static_cast<float> (1.0));
+    
+    return gain * inputValue;
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    // gain in decibels user-side, convert to linear internally
-    auto input = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
     
-    const juce::StringArray choices ( {"2:1", "4:1", "8:1", "20:1"} );
+    const juce::StringArray choices {"2:1", "4:1", "8:1", "20:1"};
     auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
     
-    auto threshold = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f), 0.0f);
+    auto thresholddB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f), 0.0f);
     
     // attack in MICROSECONDS
-    auto attack = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("ATTACK", 1), "Attack", juce::NormalisableRange<float>(20.0f, 800.0f, 0.5f), 400.0f);
+    auto attackTime = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("ATTACK", 1), "Attack", juce::NormalisableRange<float>(20.0f, 800.0f, 0.5f), 400.0f);
     
     // release in MS
-    auto release = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("RELEASE", 1), "Release", juce::NormalisableRange<float>(50.0f, 1100.0f, 0.5f), 250.0f);
+    auto releaseTime = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("RELEASE", 1), "Release", juce::NormalisableRange<float>(50.0f, 1100.0f, 0.5f), 250.0f);
     
     auto bypass = std::make_unique<juce::AudioParameterBool>(juce::ParameterID("BYPASS", 1), "Bypass", false);
     
-    auto output = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
     
-    params.push_back(std::move(input));
+    params.push_back(std::move(inputdB));
     params.push_back(std::move(ratio));
-    params.push_back(std::move(threshold));
-    params.push_back(std::move(attack));
-    params.push_back(std::move(release));
+    params.push_back(std::move(thresholddB));
+    params.push_back(std::move(attackTime));
+    params.push_back(std::move(releaseTime));
     params.push_back(std::move(bypass));
-    params.push_back(std::move(output));
+    params.push_back(std::move(outputdB));
 
     return { params.begin(), params.end() };
 }
 
 void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId, float newValue) {
     // input -> input gain module
+    if (parameterId == paramInput){
+        inputGain.setGainDecibels(newValue);
+    }
     // ratio -> choice -> int
-    // threshold -> float
-    // attack -> float
-    // release -> float
-    // power -> bool
-    // output -> output gain module
+    else if (parameterId == paramRatio){
+        switch (static_cast<int>(newValue)) {
+            case RatioChoice::Two:
+                ratio = 2;
+            case RatioChoice::Four:
+                ratio = 4;
+            case RatioChoice::Eight:
+                ratio = 8;
+            case RatioChoice::Twenty:
+                ratio = 20;
+        }
+    }
+    else if (parameterId == paramThreshold){
+        threshold = newValue;
+    }
+    else if (parameterId == paramAttack){
+        attackTime = newValue;
+    }
+    else if (parameterId == paramRelease){
+        releaseTime = newValue;
+    }
+    else if (parameterId == paramOutput){
+        outputGain.setGainDecibels(newValue);
+    }
+    else if (parameterId == paramBypass){
+        isBypassed = treeState.getRawParameterValue(paramBypass);
+    }
+}
+
+void CompressorAudioProcessor::update(){
+    threshold = juce::Decibels::decibelsToGain(thresholddB, static_cast<float> (-200.0));
+    thresholdInverse = static_cast<float> (1.0) / threshold;
+    ratioInverse     = static_cast<float> (1.0) / ratio;
+
+    envelopeFilter.setAttackTime (attackTime);
+    envelopeFilter.setReleaseTime (releaseTime);
 }
 
 
