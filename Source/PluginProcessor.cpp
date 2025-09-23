@@ -19,9 +19,10 @@ CompressorAudioProcessor::CompressorAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), treeState(*this, nullptr, "PARAMS", createParameterLayout())
 #endif
 {
+    
 }
 
 CompressorAudioProcessor::~CompressorAudioProcessor()
@@ -135,21 +136,9 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
@@ -157,6 +146,49 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         // ..do something to the data...
     }
 }
+
+juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+    
+    // gain in decibels user-side, convert to linear internally
+    auto input = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    
+    const juce::StringArray choices ( {"2:1", "4:1", "8:1", "20:1"} );
+    auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
+    
+    auto threshold = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f), 0.0f);
+    
+    // attack in MICROSECONDS
+    auto attack = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("ATTACK", 1), "Attack", juce::NormalisableRange<float>(20.0f, 800.0f, 0.5f), 400.0f);
+    
+    // release in MS
+    auto release = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("RELEASE", 1), "Release", juce::NormalisableRange<float>(50.0f, 1100.0f, 0.5f), 250.0f);
+    
+    auto bypass = std::make_unique<juce::AudioParameterBool>(juce::ParameterID("BYPASS", 1), "Bypass", false);
+    
+    auto output = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    
+    params.push_back(std::move(input));
+    params.push_back(std::move(ratio));
+    params.push_back(std::move(threshold));
+    params.push_back(std::move(attack));
+    params.push_back(std::move(release));
+    params.push_back(std::move(bypass));
+    params.push_back(std::move(output));
+
+    return { params.begin(), params.end() };
+}
+
+void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId, float newValue) {
+    // input -> input gain module
+    // ratio -> choice -> int
+    // threshold -> float
+    // attack -> float
+    // release -> float
+    // power -> bool
+    // output -> output gain module
+}
+
 
 //==============================================================================
 bool CompressorAudioProcessor::hasEditor() const
@@ -166,7 +198,8 @@ bool CompressorAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* CompressorAudioProcessor::createEditor()
 {
-    return new CompressorAudioProcessorEditor (*this);
+//    return new CompressorAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
