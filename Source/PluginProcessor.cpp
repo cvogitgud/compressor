@@ -113,7 +113,11 @@ void CompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     spec.maximumBlockSize = samplesPerBlock;
     
     inputGain.prepare(spec);
+    inputGain.setGainDecibels(0.0);
+    
     outputGain.prepare(spec);
+    outputGain.setGainDecibels(0.0);
+    
     envelopeFilter.prepare(spec);
     update();
 }
@@ -217,13 +221,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
 }
 
 void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId, float newValue) {
-    // input -> input gain module
     if (parameterId == paramInput){
         inputGain.setGainDecibels(newValue);
     }
-    // ratio -> choice -> int
     else if (parameterId == paramRatio){
-        DBG("ratio choice index: " << newValue);
         switch (static_cast<int>(newValue)) {
             case RatioChoice::Two:
                 ratio = 2;
@@ -238,7 +239,6 @@ void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId,
                 ratio = 20;
                 break;
         }
-        DBG("ratio: " << ratio);
     }
     else if (parameterId == paramThreshold){
         thresholddB = newValue;
@@ -263,7 +263,7 @@ void CompressorAudioProcessor::update(){
     threshold = juce::Decibels::decibelsToGain(thresholddB, static_cast<float> (-200.0));
     thresholdInverse = static_cast<float> (1.0) / threshold;
     ratioInverse     = static_cast<float> (1.0) / ratio;
-
+    
     envelopeFilter.setAttackTime (attackTime);
     envelopeFilter.setReleaseTime (releaseTime);
 }
