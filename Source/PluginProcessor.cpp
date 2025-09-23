@@ -114,6 +114,7 @@ void CompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     
     inputGain.prepare(spec);
     outputGain.prepare(spec);
+    envelopeFilter.prepare(spec);
     update();
 }
 
@@ -164,13 +165,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     {
         auto* channelData = buffer.getWritePointer (channel);
         
-        // get parameter values here? do i use the tree values?
-        // if so, then is that still on a timer, or is it better that we call it inside processBlock
-        // and so the updated values will be accurate in time?
-
+        inputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
         for (int sample = 0; sample < block.getNumSamples(); ++sample){
-            processSample(channel, channelData[sample]);
+            channelData[sample] = processSample(channel, channelData[sample]);
         }
+        outputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
+
     }
 }
 
@@ -188,7 +188,7 @@ float CompressorAudioProcessor::processSample(int channel, float inputValue){
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f);
     
     const juce::StringArray choices {"2:1", "4:1", "8:1", "20:1"};
     auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
@@ -203,7 +203,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
     
     auto bypass = std::make_unique<juce::AudioParameterBool>(juce::ParameterID("BYPASS", 1), "Bypass", false);
     
-    auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 1.0f);
+    auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f);
     
     params.push_back(std::move(inputdB));
     params.push_back(std::move(ratio));
@@ -223,19 +223,25 @@ void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId,
     }
     // ratio -> choice -> int
     else if (parameterId == paramRatio){
+        DBG("ratio choice index: " << newValue);
         switch (static_cast<int>(newValue)) {
             case RatioChoice::Two:
                 ratio = 2;
+                break;
             case RatioChoice::Four:
                 ratio = 4;
+                break;
             case RatioChoice::Eight:
                 ratio = 8;
+                break;
             case RatioChoice::Twenty:
                 ratio = 20;
+                break;
         }
+        DBG("ratio: " << ratio);
     }
     else if (parameterId == paramThreshold){
-        threshold = newValue;
+        thresholddB = newValue;
     }
     else if (parameterId == paramAttack){
         attackTime = newValue;
@@ -249,9 +255,11 @@ void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId,
     else if (parameterId == paramBypass){
         isBypassed = treeState.getRawParameterValue(paramBypass);
     }
+    update();
 }
 
 void CompressorAudioProcessor::update(){
+//    isBypassed = treeState.getRawParameterValue(paramBypass)->load();
     threshold = juce::Decibels::decibelsToGain(thresholddB, static_cast<float> (-200.0));
     thresholdInverse = static_cast<float> (1.0) / threshold;
     ratioInverse     = static_cast<float> (1.0) / ratio;

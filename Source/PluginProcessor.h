@@ -67,20 +67,23 @@ public:
     juce::String paramBypass { "BYPASS" };
 
 private:
+    //==============================================================================
+    void update();
+    
+    //==============================================================================
     juce::dsp::Gain<float> inputGain, outputGain;
     juce::dsp::BallisticsFilter<float> envelopeFilter;
     
-    double sampleRate = 44100.0;
     float threshold, thresholdInverse, ratioInverse;
+    
+    double sampleRate = 44100.0;
     int ratio = 1.0f;
+    
     float thresholddB = 0.0f, attackTime = 400.0f, releaseTime = 250.0f;
     bool isBypassed = false;
 
     //==============================================================================
     float processSample(int channel, float inputValue);
-    
-    //==============================================================================
-    void update();
     
     //==============================================================================
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
