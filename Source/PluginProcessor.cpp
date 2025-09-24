@@ -118,8 +118,7 @@ void CompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     outputGain.prepare(spec);
     outputGain.setGainDecibels(0.0);
     
-    envelopeFilter.prepare(spec);
-    update();
+    compressor.prepare(spec);
 }
 
 void CompressorAudioProcessor::releaseResources()
@@ -165,36 +164,23 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     
     juce::dsp::AudioBlock<float> block { buffer };
     
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        
-        inputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
-        for (int sample = 0; sample < block.getNumSamples(); ++sample){
-            channelData[sample] = processSample(channel, channelData[sample]);
-        }
-        outputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
-
-    }
-}
-
-float CompressorAudioProcessor::processSample(int channel, float inputValue){
-    // Ballistics filter with peak rectifier
-    auto env = envelopeFilter.processSample (channel, inputValue);
-
-    // VCA
-    auto gain = (env < threshold) ? static_cast<float> (1.0)
-                                  : std::pow (env * thresholdInverse, ratioInverse - static_cast<float> (1.0));
+//    if (isBypassed){
+//        return;
+//    }
     
-    return gain * inputValue;
+    inputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
+    compressor.process(juce::dsp::ProcessContextReplacing<float> (block));
+    outputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
 }
+
+
 
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
     auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f);
     
-    const juce::StringArray choices {"2:1", "4:1", "8:1", "20:1"};
+    const juce::StringArray choices {"4:1", "8:1", "12:1", "20:1"};
     auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
     
     auto thresholddB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f), 0.0f);
@@ -225,29 +211,31 @@ void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId,
         inputGain.setGainDecibels(newValue);
     }
     else if (parameterId == paramRatio){
+        int ratio = 4;
         switch (static_cast<int>(newValue)) {
-            case RatioChoice::Two:
-                ratio = 2;
-                break;
             case RatioChoice::Four:
                 ratio = 4;
                 break;
             case RatioChoice::Eight:
                 ratio = 8;
                 break;
+            case RatioChoice::Twelve:
+                ratio = 12;
+                break;
             case RatioChoice::Twenty:
                 ratio = 20;
                 break;
         }
+        compressor.setRatio(ratio);
     }
     else if (parameterId == paramThreshold){
-        thresholddB = newValue;
+        compressor.setThreshold(newValue);
     }
     else if (parameterId == paramAttack){
-        attackTime = newValue;
+        compressor.setAttack(newValue);
     }
     else if (parameterId == paramRelease){
-        releaseTime = newValue;
+        compressor.setRelease(newValue);
     }
     else if (parameterId == paramOutput){
         outputGain.setGainDecibels(newValue);
@@ -255,19 +243,7 @@ void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId,
     else if (parameterId == paramBypass){
         isBypassed = treeState.getRawParameterValue(paramBypass);
     }
-    update();
 }
-
-void CompressorAudioProcessor::update(){
-//    isBypassed = treeState.getRawParameterValue(paramBypass)->load();
-    threshold = juce::Decibels::decibelsToGain(thresholddB, static_cast<float> (-200.0));
-    thresholdInverse = static_cast<float> (1.0) / threshold;
-    ratioInverse     = static_cast<float> (1.0) / ratio;
-    
-    envelopeFilter.setAttackTime (attackTime);
-    envelopeFilter.setReleaseTime (releaseTime);
-}
-
 
 //==============================================================================
 bool CompressorAudioProcessor::hasEditor() const

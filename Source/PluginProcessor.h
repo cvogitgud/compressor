@@ -9,8 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Processing/Compressor.h"
 
-enum RatioChoice { Two, Four, Eight, Twenty };
+enum RatioChoice { Four, Eight, Twelve, Twenty };
 
 //==============================================================================
 /**
@@ -67,24 +68,14 @@ public:
     juce::String paramBypass { "BYPASS" };
 
 private:
-    //==============================================================================
-    void update();
     
     //==============================================================================
     juce::dsp::Gain<float> inputGain, outputGain;
-    juce::dsp::BallisticsFilter<float> envelopeFilter;
     
-    float threshold, thresholdInverse, ratioInverse;
+    Compressor<float> compressor;
     
-    double sampleRate = 44100.0;
-    int ratio = 1.0f;
-    
-    float thresholddB = 0.0f, attackTime = 400.0f, releaseTime = 250.0f;
     bool isBypassed = false;
 
-    //==============================================================================
-    float processSample(int channel, float inputValue);
-    
     //==============================================================================
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     void parameterChanged(const juce::String& parameterId, float newValue) override;

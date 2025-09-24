@@ -4,6 +4,11 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="YoGDkk" name="Compressor">
     <GROUP id="{FCC0B637-5D9B-B892-1442-291E9AA75941}" name="Source">
+      <GROUP id="{EFDCE176-4290-E0F9-ADA3-2AD4044E875A}" name="UI"/>
+      <GROUP id="{A2DB4ACE-FED3-535A-43CC-314EAC8A0C5D}" name="Processing">
+        <FILE id="lIfavO" name="Compressor.cpp" compile="1" resource="0" file="Source/Processing/Compressor.cpp"/>
+        <FILE id="eSeafU" name="Compressor.h" compile="0" resource="0" file="Source/Processing/Compressor.h"/>
+      </GROUP>
       <FILE id="vaUr11" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="IlqvIQ" name="PluginProcessor.h" compile="0" resource="0"
