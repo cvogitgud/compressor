@@ -253,8 +253,7 @@ bool CompressorAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* CompressorAudioProcessor::createEditor()
 {
-//    return new CompressorAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new CompressorAudioProcessorEditor (*this);
 }
 
 //==============================================================================

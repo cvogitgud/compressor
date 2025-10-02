@@ -12,15 +12,27 @@
 #include "LabeledSlider.h"
 
 //==============================================================================
-LabeledSlider::LabeledSlider()
+LabeledSlider::LabeledSlider(const juce::String& paramId)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-
+    
+    addAndMakeVisible(slider);
+    slider.setSliderStyle(juce::Slider::Rotary);
+    slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, false, getWidth(), 20);
+    
+    addAndMakeVisible(label);
+    label.setFont(juce::FontOptions(12.0f));
+    label.setText(paramId, juce::dontSendNotification);
+    label.setJustificationType(juce::Justification::centred);
 }
 
 LabeledSlider::~LabeledSlider()
 {
+}
+
+void LabeledSlider::reset(juce::AudioProcessorValueTreeState& treeState, const juce::String& paramId){
+    sliderAttachment.reset(new SliderAttachment(treeState, paramId, slider));
 }
 
 void LabeledSlider::paint (juce::Graphics& g)
@@ -36,16 +48,16 @@ void LabeledSlider::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::grey);
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
-
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
-    g.drawText ("LabeledSlider", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
 }
 
 void LabeledSlider::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-
+    
+    int width = getWidth();
+    int height = getHeight();
+    
+    slider.setBounds(0, 0, width, height - 20);
+    label.setBounds(0, slider.getBottom(), width, 20);
 }

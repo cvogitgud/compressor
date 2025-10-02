@@ -11,11 +11,14 @@
 
 //==============================================================================
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), processor (p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (800, 300);
+    
+    addAndMakeVisible(inputSlider);
+    inputSlider.reset(processor.treeState, paramInput);
 }
 
 CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
@@ -37,4 +40,11 @@ void CompressorAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    int width = getWidth();
+    int height = getHeight();
+    int xMargin = 20;
+    
+    int colWidth = width / 6;
+    inputSlider.setBounds(xMargin, 0, colWidth, height);
+    
 }
