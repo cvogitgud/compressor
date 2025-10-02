@@ -19,7 +19,7 @@ LabeledSlider::LabeledSlider(const juce::String& paramId)
     
     addAndMakeVisible(slider);
     slider.setSliderStyle(juce::Slider::Rotary);
-    slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, false, getWidth(), 20);
+    slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, false, 100, 20);
     
     addAndMakeVisible(label);
     label.setFont(juce::FontOptions(12.0f));
@@ -58,6 +58,6 @@ void LabeledSlider::resized()
     int width = getWidth();
     int height = getHeight();
     
-    slider.setBounds(0, 0, width, height - 20);
-    label.setBounds(0, slider.getBottom(), width, 20);
+    slider.setBounds(0, 0, width, height * 0.75);
+    label.setBounds(0, slider.getBottom(), width, height * 0.25);
 }
