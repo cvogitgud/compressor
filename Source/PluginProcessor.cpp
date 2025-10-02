@@ -178,12 +178,12 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f);
+    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f, 0.01f), 0.0f);
     
     const juce::StringArray choices {"4:1", "8:1", "12:1", "20:1"};
     auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
     
-    auto thresholddB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f), 0.0f);
+    auto thresholddB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("THRESHOLD", 1), "Threshold", juce::NormalisableRange<float>(-60.0f, 10.0f, 0.01f), 0.0f);
     
     // attack in MICROSECONDS
     auto attackTime = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("ATTACK", 1), "Attack", juce::NormalisableRange<float>(20.0f, 800.0f, 0.5f), 400.0f);
@@ -193,7 +193,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
     
     auto bypass = std::make_unique<juce::AudioParameterBool>(juce::ParameterID("BYPASS", 1), "Bypass", false);
     
-    auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f);
+    auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f, 0.01f), 0.0f);
     
     params.push_back(std::move(inputdB));
     params.push_back(std::move(ratio));

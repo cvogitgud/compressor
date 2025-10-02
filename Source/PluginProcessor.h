@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Processing/Compressor.h"
+#include "Shared/ParamIds.h"
 
 enum RatioChoice { Four, Eight, Twelve, Twenty };
 
@@ -59,13 +60,6 @@ public:
     
     juce::AudioProcessorValueTreeState treeState;
     
-    juce::String paramInput { "INPUT" };
-    juce::String paramRatio { "RATIO" };
-    juce::String paramThreshold { "THRESHOLD" };
-    juce::String paramAttack { "ATTACK" };
-    juce::String paramRelease { "RELEASE" };
-    juce::String paramOutput { "OUTPUT" };
-    juce::String paramBypass { "BYPASS" };
 
 private:
     
