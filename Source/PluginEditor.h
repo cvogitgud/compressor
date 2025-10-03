@@ -13,6 +13,8 @@
 #include "UI/LabeledSlider.h"
 #include "Shared/ParamIds.h"
 
+using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+
 //==============================================================================
 /**
 */
@@ -34,6 +36,7 @@ private:
     LabeledSlider inputSlider { paramInput };
     
     juce::ComboBox ratioChoices;
+    std::unique_ptr<ComboBoxAttachment> ratioAttachment;
     juce::Label ratioLabel;
     
     LabeledSlider thresholdSlider { paramThreshold };

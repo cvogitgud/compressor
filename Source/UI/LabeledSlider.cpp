@@ -19,7 +19,7 @@ LabeledSlider::LabeledSlider(const juce::String& paramId)
     
     addAndMakeVisible(slider);
     slider.setSliderStyle(juce::Slider::Rotary);
-    slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, false, 100, 20);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
     
     addAndMakeVisible(label);
     label.setFont(juce::FontOptions(12.0f));

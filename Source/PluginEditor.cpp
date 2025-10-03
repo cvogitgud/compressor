@@ -19,6 +19,11 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioP
     
     addAndMakeVisible(inputSlider);
     inputSlider.reset(processor.treeState, paramInput);
+    
+    addAndMakeVisible(ratioChoices);
+    auto choices = processor.treeState.getParameter(paramRatio)->getAllValueStrings();
+    ratioChoices.addItemList(choices, 1);
+    ratioAttachment.reset(new ComboBoxAttachment(processor.treeState, paramRatio, ratioChoices));
 }
 
 CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
@@ -46,5 +51,7 @@ void CompressorAudioProcessorEditor::resized()
     
     int colWidth = width / 6;
     inputSlider.setBounds(xMargin, 0, colWidth, height);
+    
+    ratioChoices.setBounds(inputSlider.getRight() + xMargin, 0, colWidth, 20);
     
 }
