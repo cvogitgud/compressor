@@ -102,12 +102,11 @@ void CompressorAudioProcessorEditor::resized()
     meterBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     meterBox.flexDirection = juce::FlexBox::Direction::column;
     meterBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
-    // ratio choices looks HUGE lmao
+    
     // add in Meter component
+    
+    // ratio choices looks HUGE lmao
     meterBox.items.add(juce::FlexItem(ratioChoices).withFlex(1));
     meterBox.performLayout(meterBoxArea.toFloat());
-    
-    // ratio combo box goes underneath Meter component, inside meter box
-    
     
 }
