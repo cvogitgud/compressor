@@ -11,6 +11,14 @@
         <FILE id="DLa0jC" name="LabeledSlider.cpp" compile="1" resource="0"
               file="Source/UI/LabeledSlider.cpp"/>
         <FILE id="Wc2XDC" name="LabeledSlider.h" compile="0" resource="0" file="Source/UI/LabeledSlider.h"/>
+        <FILE id="ouZuuJ" name="Meter.cpp" compile="1" resource="0" file="Source/UI/Meter.cpp"/>
+        <FILE id="fXw5UL" name="Meter.h" compile="0" resource="0" file="Source/UI/Meter.h"/>
+        <FILE id="WHFzwM" name="MeterBackground.cpp" compile="1" resource="0"
+              file="Source/UI/MeterBackground.cpp"/>
+        <FILE id="eApQ0P" name="MeterBackground.h" compile="0" resource="0"
+              file="Source/UI/MeterBackground.h"/>
+        <FILE id="Lbjil6" name="MeterNeedle.cpp" compile="1" resource="0" file="Source/UI/MeterNeedle.cpp"/>
+        <FILE id="Fvs9WC" name="MeterNeedle.h" compile="0" resource="0" file="Source/UI/MeterNeedle.h"/>
       </GROUP>
       <GROUP id="{A2DB4ACE-FED3-535A-43CC-314EAC8A0C5D}" name="Processing">
         <FILE id="lIfavO" name="Compressor.cpp" compile="1" resource="0" file="Source/Processing/Compressor.cpp"/>

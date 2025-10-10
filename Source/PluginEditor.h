@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "UI/LabeledSlider.h"
+#include "UI/Meter.h"
 #include "Shared/ParamIds.h"
 
 using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
@@ -34,15 +35,16 @@ private:
     CompressorAudioProcessor& processor;
     
     LabeledSlider inputSlider { paramInput };
+    LabeledSlider thresholdSlider { paramThreshold };
+    LabeledSlider attackSlider { paramAttack };
+    LabeledSlider releaseSlider { paramRelease };
+    LabeledSlider outputSlider { paramOutput };
     
     juce::ComboBox ratioChoices;
     std::unique_ptr<ComboBoxAttachment> ratioAttachment;
     juce::Label ratioLabel;
     
-    LabeledSlider thresholdSlider { paramThreshold };
-    LabeledSlider attackSlider { paramAttack };
-    LabeledSlider releaseSlider { paramRelease };
-    LabeledSlider outputSlider { paramOutput };
+    Meter meter;
     
     juce::ToggleButton bypass;
 

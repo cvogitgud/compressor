@@ -26,13 +26,15 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioP
     addAndMakeVisible(releaseSlider);
     releaseSlider.reset(processor.treeState, paramRelease);
     
+    addAndMakeVisible(outputSlider);
+    outputSlider.reset(processor.treeState, paramOutput);
+    
+    addAndMakeVisible(meter);
+    
     addAndMakeVisible(ratioChoices);
     auto choices = processor.treeState.getParameter(paramRatio)->getAllValueStrings();
     ratioChoices.addItemList(choices, 1);
     ratioAttachment.reset(new ComboBoxAttachment(processor.treeState, paramRatio, ratioChoices));
-    
-    addAndMakeVisible(outputSlider);
-    outputSlider.reset(processor.treeState, paramOutput);
 }
 
 CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
@@ -55,29 +57,22 @@ void CompressorAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto area = getLocalBounds().reduced(2.0f);
-    float xMargin = 20.0f;
+    float xMargin = 10;
+    auto margin = juce::FlexItem::Margin(0, xMargin, 0, xMargin);
     
-    auto colArea = juce::Rectangle(area.getWidth() / 6, area.getHeight());
+    auto colWidth = area.getWidth() / 6;
     
-    auto threshBoxArea = colArea.reduced(2);
-    threshBoxArea.setPosition(xMargin, 0);
-    
-    auto attackReleaseBoxArea = colArea.reduced(2);
-    attackReleaseBoxArea.setPosition(threshBoxArea.getRight() + xMargin, 0);
-    
-    auto outputBoxArea = colArea.reduced(2);
-    outputBoxArea.setPosition(attackReleaseBoxArea.getRight() + xMargin, 0);
-    
-    area.removeFromLeft((colArea.getWidth() + xMargin) * 3);
+    auto threshBoxArea = area.removeFromLeft(colWidth).reduced(2);
+    auto attackReleaseBoxArea = area.removeFromLeft(colWidth).reduced(2);
+    auto outputBoxArea = area.removeFromLeft(colWidth).reduced(2);
     auto meterBoxArea = area.reduced(2.0f);
-    meterBoxArea.setPosition(outputBoxArea.getRight() + xMargin, 0);
 
     // Threshold
     juce::FlexBox threshBox;
     threshBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     threshBox.flexDirection = juce::FlexBox::Direction::column;
     threshBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
-    threshBox.items.add(juce::FlexItem(thresholdSlider).withFlex(1));
+    threshBox.items.add(juce::FlexItem(thresholdSlider).withFlex(1).withMargin(margin));
     threshBox.performLayout(threshBoxArea.toFloat());
     
     // Attack & Release
@@ -85,8 +80,8 @@ void CompressorAudioProcessorEditor::resized()
     attackReleaseBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     attackReleaseBox.flexDirection = juce::FlexBox::Direction::column;
     attackReleaseBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
-    attackReleaseBox.items.add(juce::FlexItem(attackSlider).withFlex(1));
-    attackReleaseBox.items.add(juce::FlexItem(releaseSlider).withFlex(1));
+    attackReleaseBox.items.add(juce::FlexItem(attackSlider).withFlex(1).withMargin(margin));
+    attackReleaseBox.items.add(juce::FlexItem(releaseSlider).withFlex(1).withMargin(margin));
     attackReleaseBox.performLayout(attackReleaseBoxArea.toFloat());
     
     // Right Output knob box
@@ -94,19 +89,19 @@ void CompressorAudioProcessorEditor::resized()
     outputBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     outputBox.flexDirection = juce::FlexBox::Direction::column;
     outputBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
-    outputBox.items.add(juce::FlexItem(outputSlider).withFlex(1));
+    outputBox.items.add(juce::FlexItem(outputSlider).withFlex(1).withMargin(margin));
     outputBox.performLayout(outputBoxArea.toFloat());
     
     // Meter Box
     juce::FlexBox meterBox;
+    
     meterBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     meterBox.flexDirection = juce::FlexBox::Direction::column;
     meterBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
+    auto meterFlexItem = juce::FlexItem(meter).withHeight(area.getHeight() * 5 / 6);
+    meterBox.items.add(meterFlexItem.withFlex(1).withMargin(margin));
     
-    // add in Meter component
-    
-    // ratio choices looks HUGE lmao
-    meterBox.items.add(juce::FlexItem(ratioChoices).withFlex(1));
-    meterBox.performLayout(meterBoxArea.toFloat());
-    
+    auto ratioFlexItem = juce::FlexItem(ratioChoices).withHeight(area.getHeight() / 6);
+    meterBox.items.add(ratioFlexItem.withFlex(1).withMargin(margin));
+    meterBox.performLayout(meterBoxArea.withTrimmedBottom(20.0f).toFloat());
 }
