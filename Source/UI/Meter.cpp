@@ -19,7 +19,7 @@ Meter::Meter()
     startAngle = static_cast<float>(5.0f / 3.0f * juce::MathConstants<float>::pi);
     endAngle = static_cast<float>(7.0f / 3.0f * juce::MathConstants<float>::pi);
     meterBG.prepare(startAngle, endAngle);
-//    needle.prepare(startAngle, endAngle);
+    needle.prepare(startAngle, endAngle);
 
     addAndMakeVisible(meterBG);
     addAndMakeVisible(needle);
@@ -43,10 +43,6 @@ void Meter::paint (juce::Graphics& g)
     g.setColour (juce::Colours::grey);
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
-    g.drawText ("Meter", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
 }
 
 void Meter::resized()
@@ -56,12 +52,12 @@ void Meter::resized()
     auto bounds = getLocalBounds();
     
     meterBG.setBounds(bounds);
-
+    needle.setBounds(bounds);
 }
 
 void Meter::update(const float& val){
     if (val != valueInDecibel){
-//        needle.update(val);
+        needle.update(val);
     }
 }
 
