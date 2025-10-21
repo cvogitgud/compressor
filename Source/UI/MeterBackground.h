@@ -35,6 +35,8 @@ private:
     juce::Colour bgColour;
     juce::Colour indicatorColour;
     
+    juce::Rectangle<int> meterArea;
+    
     int minVal, maxVal;
     float startAngle, endAngle;
     int step;

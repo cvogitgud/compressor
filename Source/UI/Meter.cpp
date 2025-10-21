@@ -18,7 +18,7 @@ Meter::Meter()
     // initialise any special settings that your component needs.
     startAngle = static_cast<float>(5.0f / 3.0f * juce::MathConstants<float>::pi);
     endAngle = static_cast<float>(7.0f / 3.0f * juce::MathConstants<float>::pi);
-//    meterBG.prepare(startAngle, endAngle);
+    meterBG.prepare(startAngle, endAngle);
 //    needle.prepare(startAngle, endAngle);
 
     addAndMakeVisible(meterBG);
@@ -53,8 +53,9 @@ void Meter::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-    float width = getWidth();
-    float height = getHeight();
+    auto bounds = getLocalBounds();
+    
+    meterBG.setBounds(bounds);
 
 }
 

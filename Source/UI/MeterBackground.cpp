@@ -23,6 +23,7 @@ MeterBackground::MeterBackground()
     step = 5;
     
     indicatorColour = juce::Colours::whitesmoke;
+    bgColour = getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId);
     setBufferedToImage(true);
 }
 
@@ -30,30 +31,35 @@ MeterBackground::~MeterBackground()
 {
 }
 
+void MeterBackground::prepare(const float startAngle, const float endAngle){
+    this->startAngle = startAngle;
+    this->endAngle = endAngle;
+    
+    minVal = -30;
+}
+
 void MeterBackground::paint (juce::Graphics& g)
 {
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
 
-    g.setColour (juce::Colours::grey);
+    g.setColour (bgColour);
     g.fillRoundedRectangle(getLocalBounds().toFloat(), 1);   // draw an outline around the component
-
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
-    g.drawText ("MeterBackground", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
     
-    auto centreX = 0;
-    auto centreY = 0;
-    auto length = 0;
+    const auto bounds = meterArea.toFloat();
+    const float centreX = bounds.getX() + bounds.getWidth() * 0.5f;
+    const float centreY = bounds.getY() + bounds.getHeight();
+    const float needleLength = juce::jmin(bounds.getWidth() * 0.7f, bounds.getHeight() * 0.7f);
     
-    drawIndicators(g, centreX, centreY, length);
+    g.setColour (indicatorColour);
+    drawIndicators(g, centreX, centreY, needleLength);
 }
 
 void MeterBackground::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-
+    meterArea = getLocalBounds().reduced(3);
+    repaint();
 }
 
 void MeterBackground::drawIndicators(juce::Graphics &g, float centreX, float centreY, float length){
