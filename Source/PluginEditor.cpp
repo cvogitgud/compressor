@@ -63,8 +63,8 @@ void CompressorAudioProcessorEditor::resized()
     auto colWidth = area.getWidth() / 6;
     
     auto threshBoxArea = area.removeFromLeft(colWidth).reduced(2);
-    auto attackReleaseBoxArea = area.removeFromLeft(colWidth).reduced(2);
     auto outputBoxArea = area.removeFromLeft(colWidth).reduced(2);
+    auto attackReleaseBoxArea = area.removeFromLeft(colWidth).reduced(2);
     auto meterBoxArea = area.reduced(2.0f);
 
     // Threshold
@@ -75,6 +75,14 @@ void CompressorAudioProcessorEditor::resized()
     threshBox.items.add(juce::FlexItem(thresholdSlider).withFlex(1).withMargin(margin));
     threshBox.performLayout(threshBoxArea.toFloat());
     
+    // Output box
+    juce::FlexBox outputBox;
+    outputBox.flexWrap = juce::FlexBox::Wrap::noWrap;
+    outputBox.flexDirection = juce::FlexBox::Direction::column;
+    outputBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
+    outputBox.items.add(juce::FlexItem(outputSlider).withFlex(1).withMargin(margin));
+    outputBox.performLayout(outputBoxArea.toFloat());
+    
     // Attack & Release
     juce::FlexBox attackReleaseBox;
     attackReleaseBox.flexWrap = juce::FlexBox::Wrap::noWrap;
@@ -83,14 +91,6 @@ void CompressorAudioProcessorEditor::resized()
     attackReleaseBox.items.add(juce::FlexItem(attackSlider).withFlex(1).withMargin(margin));
     attackReleaseBox.items.add(juce::FlexItem(releaseSlider).withFlex(1).withMargin(margin));
     attackReleaseBox.performLayout(attackReleaseBoxArea.toFloat());
-    
-    // Right Output knob box
-    juce::FlexBox outputBox;
-    outputBox.flexWrap = juce::FlexBox::Wrap::noWrap;
-    outputBox.flexDirection = juce::FlexBox::Direction::column;
-    outputBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
-    outputBox.items.add(juce::FlexItem(outputSlider).withFlex(1).withMargin(margin));
-    outputBox.performLayout(outputBoxArea.toFloat());
     
     // Meter Box
     juce::FlexBox meterBox;
