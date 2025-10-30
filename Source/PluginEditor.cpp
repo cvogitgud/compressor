@@ -13,8 +13,6 @@
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor (CompressorAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
     setSize (800, 300);
 
     addAndMakeVisible(thresholdSlider);
@@ -44,7 +42,6 @@ CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
 //==============================================================================
 void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
@@ -54,8 +51,6 @@ void CompressorAudioProcessorEditor::paint (juce::Graphics& g)
 
 void CompressorAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     auto area = getLocalBounds().reduced(2.0f);
     float xMargin = 10;
     auto margin = juce::FlexItem::Margin(0, xMargin, 0, xMargin);
@@ -94,7 +89,6 @@ void CompressorAudioProcessorEditor::resized()
     
     // Meter Box
     juce::FlexBox meterBox;
-    
     meterBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     meterBox.flexDirection = juce::FlexBox::Direction::column;
     meterBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
