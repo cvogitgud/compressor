@@ -82,7 +82,7 @@ void Compressor<SampleType>::update(){
     threshold = juce::Decibels::decibelsToGain(thresholddB, static_cast<float> (-200.0));
     thresholdInverse = static_cast<float> (1.0) / threshold;
     ratioInverse     = static_cast<float> (1.0) / ratio;
-    
+    DBG("threshold" << threshold);
     envelopeFilter.setAttackTime (attackTime);
     envelopeFilter.setReleaseTime (releaseTime);
 }

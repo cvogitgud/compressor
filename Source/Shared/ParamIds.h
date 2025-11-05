@@ -10,7 +10,6 @@
 
 #pragma once
 
-static juce::String paramInput { "INPUT" };
 static juce::String paramRatio { "RATIO" };
 static juce::String paramThreshold { "THRESHOLD" };
 static juce::String paramAttack { "ATTACK" };

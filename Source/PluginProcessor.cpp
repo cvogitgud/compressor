@@ -22,7 +22,6 @@ CompressorAudioProcessor::CompressorAudioProcessor()
                        ), treeState(*this, nullptr, "PARAMS", createParameterLayout())
 #endif
 {
-    treeState.addParameterListener(paramInput, this);
     treeState.addParameterListener(paramRatio, this);
     treeState.addParameterListener(paramThreshold, this);
     treeState.addParameterListener(paramAttack, this);
@@ -33,7 +32,6 @@ CompressorAudioProcessor::CompressorAudioProcessor()
 
 CompressorAudioProcessor::~CompressorAudioProcessor()
 {
-    treeState.removeParameterListener(paramInput, this);
     treeState.removeParameterListener(paramRatio, this);
     treeState.removeParameterListener(paramThreshold, this);
     treeState.removeParameterListener(paramAttack, this);
@@ -112,9 +110,6 @@ void CompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     spec.numChannels = getTotalNumOutputChannels();
     spec.maximumBlockSize = samplesPerBlock;
     
-    inputGain.prepare(spec);
-    inputGain.setGainDecibels(0.0);
-    
     outputGain.prepare(spec);
     outputGain.setGainDecibels(0.0);
     
@@ -168,7 +163,6 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 //        return;
 //    }
     
-    inputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
     compressor.process(juce::dsp::ProcessContextReplacing<float> (block));
     outputGain.process(juce::dsp::ProcessContextReplacing<float> (block));
 }
@@ -177,8 +171,6 @@ void CompressorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
 juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::createParameterLayout(){
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-    
-    auto inputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("INPUT", 1), "Input", juce::NormalisableRange<float>(-10.0f, 10.0f, 0.01f), 0.0f);
     
     const juce::StringArray choices {"4:1", "8:1", "12:1", "20:1"};
     auto ratio = std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("RATIO", 1), "Ratio", choices, 0);
@@ -195,7 +187,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
     
     auto outputdB = std::make_unique<juce::AudioParameterFloat>(juce::ParameterID("OUTPUT", 1), "Output", juce::NormalisableRange<float>(-10.0f, 10.0f, 0.01f), 0.0f);
     
-    params.push_back(std::move(inputdB));
     params.push_back(std::move(ratio));
     params.push_back(std::move(thresholddB));
     params.push_back(std::move(attackTime));
@@ -207,10 +198,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CompressorAudioProcessor::cr
 }
 
 void CompressorAudioProcessor::parameterChanged(const juce::String& parameterId, float newValue) {
-    if (parameterId == paramInput){
-        inputGain.setGainDecibels(newValue);
-    }
-    else if (parameterId == paramRatio){
+    if (parameterId == paramRatio){
         int ratio = 4;
         switch (static_cast<int>(newValue)) {
             case RatioChoice::Four:

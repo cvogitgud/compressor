@@ -64,7 +64,7 @@ public:
 private:
     
     //==============================================================================
-    juce::dsp::Gain<float> inputGain, outputGain;
+    juce::dsp::Gain<float> outputGain;
     
     Compressor<float> compressor;
     
